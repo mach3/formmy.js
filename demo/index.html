@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Demo: Formmy.js</title>
+	<style>
+
+	body {
+		font-size: 90%;
+	}
+
+	ul {
+		list-style-type: none;
+		padding: 0;
+		margin: 1em;
+	}
+
+	.label {
+		float: left;
+		width: 10em;
+		font-weight: bold;
+	}
+
+	li p {
+		margin-left: 11em;
+		line-height: 1.6em;
+		min-height: 1.6em;
+	}
+
+	input[type=text], textarea {
+		box-sizing: border-box;
+		border: 1px solid #999;
+		line-height: 1.6em;
+		border-radius: 3px;
+		padding: .5em;
+	}
+
+	input[type=text].valid, textarea.valid {
+		border-color: #696;
+		background-color: #cfc;
+	}
+
+	input[type=text].invalid, textarea.invalid {
+		border-color: #c00;
+		background-color: #fcc;
+	}
+
+	.message {
+		display: inline-block;
+		margin-left: 1em;
+	}
+
+	.message-error {
+		color: #c00;
+	}
+
+	.message-valid::before {
+		content: "✓";
+		color: #090;
+	}
+
+	#app form {
+		display: none;
+	}
+
+	#app form:first-child {
+		display: block;
+	}
+
+
+	</style>
+</head>
+<body>
+
+	<div id="app">
+		<form data-name="input" action="./response.json">
+			<ul>
+				<li>
+					<label for="name" class="label">Name</label>
+					<p>
+						<input type="text" id="name" name="name" data-validation="require; length(1,100);">
+						<span class="message" data-for="name"></span>
+					</p>
+				</li>
+				<li>
+					<label for="email" class="label">Email</label>
+					<p>
+						<input type="text" id="email" name="email" data-validation="require; email;">
+						<span class="message" data-for="email"></span>
+					</p>
+				</li>
+				<li>
+					<label for="email-confirm" class="label">Email (Confirm)</label>
+					<p>
+						<input type="text" id="email-confirm" name="email-confirm" data-validation="require; equals(__email__);">
+						<span class="message" data-for="email-confirm"></span>
+					</p>
+				</li>
+				<li>
+					<label for="note" class="label">Optional Note</label>
+					<p>
+						<input type="text" name="note" id="note" data-validation="length(0, 8);">
+					</p>
+				</li>
+				<li>
+					<span class="label">Blood Type</span>
+					<p>
+						<label><input type="radio" name="blood-type" value="A" data-validation="require;">A</label>
+						<label><input type="radio" name="blood-type" value="B">B</label>
+						<label><input type="radio" name="blood-type" value="O">O</label>
+						<label><input type="radio" name="blood-type" value="AB">AB</label>
+						<label><input type="radio" name="blood-type" value="Other">Other</label>
+						<span class="message" data-for="blood-type"></span>
+					</p>
+				</li>
+				<li>
+					<span class="label">Color</span>
+					<p>
+						<label><input type="checkbox" name="color" value="Red" data-validation="require;">Red</label>
+						<label><input type="checkbox" name="color" value="Blue">Blue</label>
+						<label><input type="checkbox" name="color" value="Green">Green</label>
+						<span class="message" data-for="color"></span>
+					</p>
+				</li>
+				<li>
+					<label for="browser" class="label">Browser</label>
+					<p>
+						<select name="browser" id="browser" data-validation="require;">
+							<option value="">-- Please Select --</option>
+							<option value="Internet Explorer">Internet Explorer</option>
+							<option value="Firefox">Firefox</option>
+							<option value="Google Chrome">Google Chrome</option>
+							<option value="Safari">Safari</option>
+							<option value="Opera">Opera</option>
+							<option value="Other">Other</option>
+						</select>
+						<span class="message" data-for="browser"></span>
+					</p>
+				</li>
+				<li>
+					<label for="message" class="label">Message</label>
+					<p>
+						<textarea name="message" id="message" cols="30" rows="5" data-validation="require; length(0, 100)"></textarea>
+					</p>
+				</li>
+			</ul>
+			<input type="submit" value="Confirm">
+		</form>
+
+		<form data-name="confirm"></form>
+		<form data-name="thanks">
+			<p>
+				Thank you !
+			</p>
+		</form>
+		<form data-name="error">
+			<p>
+				Something goes wrong !
+			</p>
+		</form>
+	</div>
+
+	<script type="text/template" id="template-form-confirm">
+		<ul>
+			<li>
+				<label for="name" class="label">Name</label>
+				<p><%-vars.name %></p>
+			</li>
+			<li>
+				<label for="email" class="label">Email</label>
+				<p><%-vars.email %></p>
+			</li>
+			<li>
+				<label for="note" class="label">Optional Note</label>
+				<p><%-vars.note %></p>
+			</li>
+			<li>
+				<span class="label">Blood Type</span>
+				<p><%-vars["blood-type"] %></p>
+			</li>
+			<li>
+				<span class="label">Color</span>
+				<%-(!! vars.color.join ? vars.color.join(" ") : vars.color) %>
+			</li>
+			<li>
+				<label for="browser" class="label">Browser</label>
+				<p><%-vars.browser %></p>
+			</li>
+			<li>
+				<label for="message" class="label">Message</label>
+				<p><%-(vars.message ? vars.message.replace(/\n/g, "<br>") : "") %></p>
+			</li>
+		</ul>
+		<input type="submit" value="Send">
+		<input type="button" value="Edit" class="button-edit">
+	</script>
+
+	<script src="../bower_components/jquery/dist/jquery.js"></script>
+	<script src="../bower_components/lodash/lodash.js"></script>
+	<script src="../dist/formmy.dev.js"></script>
+	<script>
+
+	var App = ({
+
+		app: null,
+		forms: null,
+		formInput: null,
+		formConfirm: null,
+		formThanks: null,
+
+		formmy: null,
+
+		init: function(){
+			var my = this;
+
+			this.app = $("#app");
+			this.formInput = $("form[data-name=input]");
+			this.formConfirm = $("form[data-name=confirm]");
+
+			$.each(this, function(key, value){
+				if(/^_/.test(key) && $.isFunction(value)){
+					my[key] = $.proxy(value, my);
+				}
+			});
+
+			this.formInput.formmy({}, {
+				"name": {
+					"require": "Please input your name",
+					"length": "Input with 1-100 characters"
+				},
+				"email": {
+					"require": "Please input your email address",
+					"email": "Correct your email address"
+				},
+				"email-confirm": {
+					"require": "Please input your email address to confirm",
+					"equals": "Not equal to email address above"
+				},
+				"note": {
+					"length": "Please input within 8 characters"
+				},
+				"blood-type": {
+					"require": "Please select your type"
+				},
+				"color": {
+					"require": "Please select color you like"
+				},
+				"browser": {
+					"require": "Please select browser you use"
+				},
+				"message": {
+					"require": "Please input your message",
+					"length": "Please input within 100 characters"
+				}
+			})
+			.on("formmySubmit", this._onInputSubmit);
+
+			this.formmy = this.formInput.getFormmy();
+
+			this.app.on("submit", "[data-name=confirm]", this._onConfirmSubmit);
+			this.app.on("click", "[data-name=confirm] .button-edit", this._onClickEdit);
+
+			return this;
+		},
+
+		refresh: function(name){
+			this.app.find("form").hide().filter(function(){
+				return $(this).data("name") === name;
+			})
+			.fadeIn();
+		},
+
+		render: function(name, vars){
+			return $("<div>").append(
+				_.template($(name).html())(vars)
+			).children();
+		},
+
+		_onInputSubmit: function(){
+			this.formConfirm.html(
+				this.render("#template-form-confirm", {vars: this.formmy.serialize()})
+			);
+			this.refresh("confirm");
+		},
+
+		_onClickEdit: function(e){
+			this.refresh("input");
+		},
+
+		_onConfirmSubmit: function(e){
+			var my = this;
+			e.preventDefault();
+			this.formmy.ajax().then(
+				function(){
+					my.refresh("thanks");
+				},
+				function(){
+					my.refresh("error");
+				}
+			);
+		}
+
+	}).init();
+
+	</script>
+	
+</body>
+</html>
