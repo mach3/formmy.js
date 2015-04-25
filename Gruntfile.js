@@ -5,7 +5,8 @@ module.exports = function(grunt){
 	var files = [
 		"src/extend.js",
 		"src/formmy.js",
-		"src/formmy.valid.js"
+		"src/formmy.valid.js",
+		"src/formmy.filter.js"
 	];
 
 	var banner = grunt.template.process(

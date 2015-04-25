@@ -1,6 +1,6 @@
 {
   "name": "formmy.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Front form validation interface",
   "main": "dist/formmy.js",
   "scripts": {

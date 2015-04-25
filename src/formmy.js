@@ -23,6 +23,7 @@
 		// Defaults for options:
 		api.defaults = {
 			keyValidation: "validation", // data-* key for validation rules
+			keyFilter: "filter", // data-* key for filters
 			keyFor: "for", // data-* key for message container
 
 			defaultMessage: "Invalid Input", // Default invalid message
@@ -48,6 +49,7 @@
 		api.options = null;
 		api.messages = null;
 		api.rules = null;
+		api.filters = null;
 		api.errors = null;
 
 		api.$el = null;
@@ -112,18 +114,24 @@
 		};
 
 		/**
-		 * Initialize all rules
+		 * Initialize all rules and filters
 		 */
 		api.initRules = function(){
 			var my, rules;
 
 			my = this;
 			rules = {};
+			filters = {};
 			this.fields.each(function(){
-				if(this.name in rules){ return; }
-				rules[this.name] = my.parseRule(this);
+				if(! (this.name in rules)){
+					rules[this.name] = my.parseRule(this);
+				}
+				if(! (this.name in filters)){
+					filters[this.name] = my.parseFilter(this);
+				}
 			});
 			this.rules = rules;
+			this.filters = filters;
 			return this;
 		};
 
@@ -133,7 +141,7 @@
 		 * @returns {Object} rules
 		 */
 		api.parseRule = function(el){
-			var node, o, str;
+			var node, rules, str;
 
 			node = $(el);
 			str = node.data(this.config().keyValidation);
@@ -164,6 +172,35 @@
 			});
 
 			return rules;
+		};
+
+		/**
+		 * Parse filter for the input element
+		 * @param {HTML*Element} el
+		 * @returns {Array}
+		 */
+		api.parseFilter = function(el){
+			var node, filters, str;
+
+			node = $(el);
+			filters = [];
+			str = node.data("filter");
+			!! str && str.replace(/(\w+)(?:\((.+?)\))?/g, function(a, b, c){
+				var args = [];
+				if(!! c){
+					$.each(c.split(","), function(i, v){
+						v = $.trim(v);
+						v = /^[\d]+$/.test(v) ? parseInt(v, 10) : v;
+						args.push(v);
+					});
+				}
+				filters.push({
+					name: b,
+					args: args
+				});
+			});
+
+			return filters;
 		};
 
 		/**
@@ -200,6 +237,8 @@
 		api.validate = function(el){
 			var my, name, data, error, rules, value;
 
+			this.filter(el);
+
 			my = this;
 			name = el.name;
 			data = this.$el.serializeObject();
@@ -235,6 +274,29 @@
 			});
 
 			return error;
+		};
+
+		/**
+		 * Filter input's value
+		 * @param {HTML*Element} el
+		 */
+		api.filter = function(el){
+			var value, filters;
+
+			value = el.value;
+			filters = this.filters[el.name];
+			if(! filters){
+				return;
+			}
+			$.each(filters, function(i, item){
+				var args, filter;
+				args = [value].concat(item.args);
+				filter = $.Formmy.filter[item.name];
+				if($.isFunction(filter)){
+					value = filter.apply($.Formmy.filter, args);
+				}
+			});
+			el.value = value;
 		};
 
 		/**
